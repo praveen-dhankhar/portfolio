@@ -23,10 +23,11 @@ export const site = {
 
   // "What I do" — adapted from your GitHub work
   focus: [
-    { title: "Backend Systems", tags: ["REST APIs", "Rate Limiting", "Queues"] },
-    { title: "Distributed Systems", tags: ["Reverse Proxies", "Failover", "Observability"] },
+    { title: "Backend Systems", tags: ["REST APIs", "Rate Limiting", "Auth"] },
+    { title: "Distributed Systems", tags: ["Reverse Proxies", "Failover", "Circuit Breakers"] },
     { title: "Data Pipelines", tags: ["Ingestion", "Aggregation", "PostgreSQL"] },
     { title: "LLM Infrastructure", tags: ["Streaming", "SSE", "Gateways"] },
+    { title: "GenAI & RAG", tags: ["Retrieval", "Embeddings", "Agents"] },
   ],
 
   // Featured projects (pulled from your public repos)

@@ -84,8 +84,15 @@ export default async function WorkDetail({ params }: { params: Promise<{ slug: s
           {/* Body */}
           <section className="mt-16">
             <h2 className="text-2xl font-semibold tracking-tight md:text-3xl">Overview</h2>
-            <p className="mt-4 max-w-2xl leading-relaxed text-muted">{p.blurb}</p>
+            <p className="mt-4 max-w-2xl leading-relaxed text-muted">{p.overview}</p>
           </section>
+
+          {p.sections.map((s) => (
+            <section key={s.heading} className="mt-12">
+              <h2 className="text-2xl font-semibold tracking-tight md:text-3xl">{s.heading}</h2>
+              <p className="mt-4 max-w-2xl leading-relaxed text-muted">{s.body}</p>
+            </section>
+          ))}
 
           <section className="mt-12">
             <h2 className="text-2xl font-semibold tracking-tight md:text-3xl">Built with</h2>

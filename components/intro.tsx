@@ -158,7 +158,7 @@ export function Intro() {
             <div className="absolute inset-x-4 bottom-[7%] text-center" style={{ opacity: heyIn, transform: `translateY(${lerp(24, 0, heyIn)}px)` }}>
               <h2 className="display text-[clamp(2rem,9vw,3rem)]">Hey!</h2>
               <p className="mx-auto mt-3 max-w-xs text-sm leading-relaxed text-muted">
-                I&apos;m {site.name} — backend &amp; distributed systems.
+                I&apos;m {site.name} — Software Engineer focused on backend & distributed systems.
               </p>
               <a href="#contact" className="group mt-4 inline-flex items-center gap-2 text-sm font-medium">
                 Get Started

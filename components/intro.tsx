@@ -40,13 +40,20 @@ const BOLT = "M58 2 14 56h26l-8 42 46-56H50L58 2Z";
 export function Intro() {
   const sectionRef = useRef<HTMLElement>(null);
   const [p, setP] = useState(0);
+  // Mobile vs desktop is switched in CSS (below) so there's no post-hydration
+  // flash. JS only forces the static layout for reduced-motion users.
   const [reduced, setReduced] = useState(false);
 
   useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      setReduced(true);
-      return;
-    }
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const sync = () => setReduced(reduce.matches);
+    sync();
+    reduce.addEventListener("change", sync);
+    return () => reduce.removeEventListener("change", sync);
+  }, []);
+
+  useEffect(() => {
+    if (reduced) return;
     const el = sectionRef.current;
     if (!el) return;
     let raf = 0;
@@ -68,10 +75,15 @@ export function Intro() {
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
     };
-  }, []);
+  }, [reduced]);
 
-  // Reduced-motion / no-JS fallback: static stacked hero fold + Hey, no pin.
-  if (reduced) return <IntroStatic />;
+  // Reduced motion → static everywhere.
+  if (reduced)
+    return (
+      <div id="top">
+        <IntroStatic />
+      </div>
+    );
 
   const headOut = smooth(range(p, 0.04, 0.26));
   const labelOut = smooth(range(p, 0, 0.2));
@@ -84,8 +96,15 @@ export function Intro() {
   const heyIn = smooth(range(p, 0.52, 0.82));
 
   return (
-    <section ref={sectionRef} id="top" className="relative h-[220vh]">
-      <div className="sticky top-0 flex h-screen items-center overflow-hidden">
+    <div id="top">
+      {/* Mobile + tablet: clean stacked layout, no pin/overlap */}
+      <div className="lg:hidden">
+        <IntroStatic />
+      </div>
+
+      {/* Desktop (lg+): pinned flip scene */}
+      <section ref={sectionRef} className="relative hidden h-[220vh] lg:block">
+        <div className="sticky top-0 flex h-screen items-center overflow-hidden">
         <div className="relative mx-auto h-full w-full max-w-6xl px-6 md:px-10">
           {/* Hero headline */}
           <div
@@ -147,8 +166,9 @@ export function Intro() {
             </div>
           </div>
         </div>
-      </div>
-    </section>
+        </div>
+      </section>
+    </div>
   );
 }
 
@@ -166,7 +186,7 @@ function Face({ src, alt, back = false, priority = true }: { src: string; alt: s
 // Non-animated fallback.
 function IntroStatic() {
   return (
-    <section id="top" className="mx-auto max-w-6xl px-6 pt-16 pb-20 md:px-10">
+    <section className="mx-auto max-w-6xl px-6 pt-16 pb-20 md:px-10">
       <h1 className="display text-center text-[clamp(3rem,13vw,11rem)]">Software</h1>
       <h1 className="display text-center text-[clamp(3rem,13vw,11rem)]">Engineer</h1>
       <div className="mx-auto mt-12 max-w-sm">

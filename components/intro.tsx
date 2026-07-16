@@ -40,8 +40,8 @@ const BOLT = "M58 2 14 56h26l-8 42 46-56H50L58 2Z";
 export function Intro() {
   const sectionRef = useRef<HTMLElement>(null);
   const [p, setP] = useState(0);
-  // Mobile vs desktop is switched in CSS (below) so there's no post-hydration
-  // flash. JS only forces the static layout for reduced-motion users.
+  const [vw, setVw] = useState(1280); // viewport width → responsive card size
+  // JS only forces the static layout for reduced-motion users.
   const [reduced, setReduced] = useState(false);
 
   useEffect(() => {
@@ -62,6 +62,7 @@ export function Intro() {
       const total = el.offsetHeight - window.innerHeight;
       const scrolled = clamp(-rect.top, 0, total);
       setP(total > 0 ? scrolled / total : 0);
+      setVw(window.innerWidth);
     };
     const onScroll = () => {
       cancelAnimationFrame(raf);
@@ -90,72 +91,18 @@ export function Intro() {
   const flip = smooth(range(p, 0.1, 0.62));
   const deg = flip * 180;
   const grow = smooth(range(p, 0.1, 0.72));
-  const w = lerp(150, 320, grow);
-  const h = lerp(150, 400, grow);
-  const ty = lerp(110, 0, smooth(range(p, 0, 0.42)));
+  // Card size scales with the viewport: ~62vw on phones, capped at 320px.
+  const endW = Math.min(320, vw * 0.62);
+  const w = lerp(endW * 0.46, endW, grow);
+  const h = lerp(endW * 0.46, endW * 1.25, grow); // square → portrait
+  const ty = lerp(90, 0, smooth(range(p, 0, 0.42)));
   const heyIn = smooth(range(p, 0.52, 0.82));
 
   return (
-    <div id="top">
-      {/* Mobile + tablet: clean stacked layout, no pin/overlap */}
-      <div className="lg:hidden">
-        <IntroStatic />
-      </div>
-
-      {/* Desktop (lg+): pinned flip scene */}
-      <section ref={sectionRef} className="relative hidden h-[220vh] lg:block">
-        <div className="sticky top-0 flex h-screen items-center overflow-hidden">
+    <section ref={sectionRef} id="top" className="relative h-[220vh]">
+      <div className="sticky top-0 flex h-screen items-center overflow-hidden">
         <div className="relative mx-auto h-full w-full max-w-6xl px-6 md:px-10">
-          {/* Hero headline */}
-          <div
-            className="pointer-events-none absolute inset-x-6 top-[12%] text-center md:inset-x-10"
-            style={{ opacity: 1 - headOut, transform: `translateY(${-90 * headOut}px)` }}
-          >
-            <Mark d={SPARKLE} className="absolute -left-1 -top-4 h-9 w-9 md:left-2 md:h-14 md:w-14" />
-            <Mark d={BOLT} className="absolute -right-1 top-24 h-10 w-10 md:right-2 md:top-40 md:h-16 md:w-16" />
-            <h1 className="display text-[clamp(3rem,13vw,11rem)]">Software</h1>
-            <h1 className="display text-[clamp(3rem,13vw,11rem)]">Engineer</h1>
-          </div>
-
-          {/* Hey! */}
-          <h2
-            className="display absolute left-6 top-[24%] text-[clamp(2.5rem,7vw,5rem)] md:left-10"
-            style={{ opacity: heyIn, transform: `translateX(${lerp(-40, 0, heyIn)}px)` }}
-          >
-            Hey!
-          </h2>
-
-          {/* Left blurb (Hey) */}
-          <p
-            className="absolute bottom-[16%] left-6 max-w-[16rem] text-base font-medium leading-relaxed md:left-10 md:text-lg"
-            style={{ opacity: heyIn, transform: `translateX(${lerp(-30, 0, heyIn)}px)` }}
-          >
-            I&apos;m {site.name}, a software engineer focused on backend and distributed systems.
-          </p>
-
-          {/* Right copy (Hey) */}
-          <div
-            className="absolute bottom-[16%] right-6 max-w-[18rem] md:right-10"
-            style={{ opacity: heyIn, transform: `translateX(${lerp(30, 0, heyIn)}px)` }}
-          >
-            <p className="text-base leading-relaxed text-muted md:text-lg">{site.about}</p>
-            <a href="#contact" className="group mt-6 inline-flex items-center gap-3 text-sm font-medium">
-              Get Started
-              <span aria-hidden className="flex h-8 w-8 items-center justify-center rounded-md border border-line transition-colors group-hover:border-ink">
-                ↗
-              </span>
-            </a>
-          </div>
-
-          {/* Corner labels (hero) */}
-          <span className="display absolute bottom-[8%] left-6 text-4xl md:left-10 md:text-5xl" style={{ opacity: 1 - labelOut }}>
-            ©2026
-          </span>
-          <span className="eyebrow absolute bottom-[9%] right-6 md:right-10" style={{ opacity: 1 - labelOut }}>
-            /Creating since {site.creatingSince}
-          </span>
-
-          {/* The card */}
+          {/* Shared flip card (centered) */}
           <div className="absolute inset-0 flex items-center justify-center" style={{ perspective: "1200px" }}>
             <div
               className="relative"
@@ -165,10 +112,62 @@ export function Intro() {
               <Face src="/headshot.png" alt={site.name} back priority={false} />
             </div>
           </div>
+
+          {/* ---- Desktop (lg+): corner spread ---- */}
+          <div className="hidden lg:block">
+            <div
+              className="pointer-events-none absolute inset-x-10 top-[12%] text-center"
+              style={{ opacity: 1 - headOut, transform: `translateY(${-90 * headOut}px)` }}
+            >
+              <Mark d={SPARKLE} className="absolute left-2 -top-4 h-14 w-14" />
+              <Mark d={BOLT} className="absolute right-2 top-40 h-16 w-16" />
+              <h1 className="display text-[clamp(3rem,13vw,11rem)]">Software</h1>
+              <h1 className="display text-[clamp(3rem,13vw,11rem)]">Engineer</h1>
+            </div>
+            <h2 className="display absolute left-10 top-[24%] text-[clamp(2.5rem,7vw,5rem)]" style={{ opacity: heyIn, transform: `translateX(${lerp(-40, 0, heyIn)}px)` }}>
+              Hey!
+            </h2>
+            <p className="absolute bottom-[16%] left-10 max-w-[16rem] text-lg font-medium leading-relaxed" style={{ opacity: heyIn, transform: `translateX(${lerp(-30, 0, heyIn)}px)` }}>
+              I&apos;m {site.name}, a software engineer focused on backend and distributed systems.
+            </p>
+            <div className="absolute bottom-[16%] right-10 max-w-[18rem]" style={{ opacity: heyIn, transform: `translateX(${lerp(30, 0, heyIn)}px)` }}>
+              <p className="text-lg leading-relaxed text-muted">{site.about}</p>
+              <a href="#contact" className="group mt-6 inline-flex items-center gap-3 text-sm font-medium">
+                Get Started
+                <span aria-hidden className="flex h-8 w-8 items-center justify-center rounded-md border border-line transition-colors group-hover:border-ink">↗</span>
+              </a>
+            </div>
+            <span className="display absolute bottom-[8%] left-10 text-5xl" style={{ opacity: 1 - labelOut }}>©2026</span>
+            <span className="eyebrow absolute bottom-[9%] right-10" style={{ opacity: 1 - labelOut }}>/Creating since {site.creatingSince}</span>
+          </div>
+
+          {/* ---- Mobile + tablet: centered vertical stack ---- */}
+          <div className="lg:hidden">
+            <div
+              className="pointer-events-none absolute inset-x-4 top-[7%] text-center"
+              style={{ opacity: 1 - headOut, transform: `translateY(${-60 * headOut}px)` }}
+            >
+              <Mark d={SPARKLE} className="absolute left-0 -top-3 h-8 w-8" />
+              <Mark d={BOLT} className="absolute right-0 top-16 h-9 w-9" />
+              <h1 className="display text-[clamp(2.75rem,13vw,6rem)]">Software</h1>
+              <h1 className="display text-[clamp(2.75rem,13vw,6rem)]">Engineer</h1>
+            </div>
+            <span className="display absolute bottom-[6%] left-4 text-3xl" style={{ opacity: 1 - labelOut }}>©2026</span>
+            <span className="eyebrow absolute bottom-[7%] right-4" style={{ opacity: 1 - labelOut }}>/Creating since {site.creatingSince}</span>
+            <div className="absolute inset-x-4 bottom-[7%] text-center" style={{ opacity: heyIn, transform: `translateY(${lerp(24, 0, heyIn)}px)` }}>
+              <h2 className="display text-[clamp(2rem,9vw,3rem)]">Hey!</h2>
+              <p className="mx-auto mt-3 max-w-xs text-sm leading-relaxed text-muted">
+                I&apos;m {site.name} — backend &amp; distributed systems.
+              </p>
+              <a href="#contact" className="group mt-4 inline-flex items-center gap-2 text-sm font-medium">
+                Get Started
+                <span aria-hidden className="flex h-7 w-7 items-center justify-center rounded-md border border-line">↗</span>
+              </a>
+            </div>
+          </div>
         </div>
-        </div>
-      </section>
-    </div>
+      </div>
+    </section>
   );
 }
 
@@ -178,7 +177,7 @@ function Face({ src, alt, back = false, priority = true }: { src: string; alt: s
       className="absolute inset-0 overflow-hidden rounded-2xl bg-ink/5"
       style={{ backfaceVisibility: "hidden", transform: back ? "rotateY(180deg)" : undefined }}
     >
-      <Image src={src} alt={alt} fill priority={priority} sizes="(max-width: 768px) 60vw, 340px" className="object-cover" />
+      <Image src={src} alt={alt} fill priority={priority} sizes="(max-width: 1024px) 62vw, 320px" className="object-cover" />
     </div>
   );
 }

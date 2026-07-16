@@ -99,7 +99,8 @@ export function Intro() {
   const heyIn = smooth(range(p, 0.52, 0.82));
 
   return (
-    <section ref={sectionRef} id="top" className="relative h-[220vh]">
+    <>
+      <section ref={sectionRef} id="top" className="relative h-[220vh]">
       <div className="sticky top-0 flex h-screen items-center overflow-hidden">
         <div className="relative mx-auto h-full w-full max-w-6xl px-6 md:px-10">
           {/* Shared flip card (centered) */}
@@ -167,7 +168,13 @@ export function Intro() {
           </div>
         </div>
       </div>
-    </section>
+      </section>
+
+      {/* Mobile/tablet: full about paragraph scrolls in after the flip */}
+      <section className="mx-auto max-w-xl px-6 pb-20 lg:hidden">
+        <p className="text-lg leading-relaxed text-muted">{site.about}</p>
+      </section>
+    </>
   );
 }
 
